@@ -1,0 +1,41 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String
+  lastLogin    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RequestLog {
+  id           Int      @id @default(autoincrement())
+  ip           String
+  endpoint     String
+  method       String
+  requestCount Int      @default(1)
+  anomalyScore Float?
+  statusCode   Int
+  country      String
+  responseTime Float
+  isMalicious  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model BlockedIP {
+  id        Int      @id @default(autoincrement())
+  ip        String   @unique
+  reason    String
+  blockedAt DateTime @default(now())
+}

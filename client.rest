@@ -1,0 +1,31 @@
+GET http://localhost:5000/api/data
+
+###
+
+POST http://localhost:5000/api/auth/login
+content-type: application/json
+
+{
+    "email": "David",
+    "password": "123456"
+}
+
+###
+
+POST http://localhost:5000/api/auth/register
+content-type: application/json
+
+{
+    "email": "David",
+    "password": "123456",
+    "role": "admin",
+    "name": "Security Analyst"
+}
+
+###
+
+POST http://localhost:5000/api/auth/logout
+
+###
+
+GET http://localhost:5000/api/stat/analytics
