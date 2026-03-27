@@ -61,7 +61,7 @@ const Overview = () => {
         <StatCard title="Blocked IPs" value={data.totalIpBlocked} icon={Ban} variant="warning" />
         <StatCard title="Requests / Hour" value={data.hourlyReq[0] ? data.hourlyReq[0].request_count?.toLocaleString() : "0"} subtitle="Live" icon={Zap} variant="success" />
         <StatCard title="Avg Anomaly Score" value={data.avgAnomaly ? data.avgAnomaly.toFixed(2) : 0} icon={Gauge} />
-        <StatCard title="Detection Rate" value="97.3%" subtitle="ML Model v2.4.1" icon={TrendingUp} variant="success" />
+        <StatCard title="Detection Model" value="Isolation Forest" subtitle="ML Model" icon={TrendingUp} variant="success" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

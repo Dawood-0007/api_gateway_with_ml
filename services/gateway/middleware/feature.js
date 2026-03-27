@@ -17,12 +17,12 @@ export const featureExtraction = async (req, res, next) => {
     const endpoint = req.path;
 
     const key = `ip:${ip}:count`;
-    // const loginAttempt = `ip:${ip}:login:total`;
-    // const failedAttempt = `ip:${ip}:login:failed`;
-
+    
     await redis.incr(key);
     await redis.expire(key, 10);
-
+    
+    // const loginAttempt = `ip:${ip}:login:total`;
+    // const failedAttempt = `ip:${ip}:login:failed`;
     // await redis.incr(`ip:${ip}:login_total`);
 
     // if (loginFailed) {
