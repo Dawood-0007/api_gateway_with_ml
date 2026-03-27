@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,11 +23,14 @@ interface Logs {
 }
 
 const RequestLogs = () => {
+  const [page, setPage] = useState(10);
+  const loaderRef = useRef(null);
+
   const [search, setSearch] = useState("");
   const [logs, setLogs] = useState<Logs[]>([{
     id: 0,
     ip: "",
-    endpoint: "",
+    endpoint: "None",
     method: "",
     requestCount: 0,
     anomalyScore: 0,
@@ -45,14 +48,15 @@ const RequestLogs = () => {
       const response = await fetch("http://localhost:5000/api/stat/logs", { method: "GET" });
       const data = await response.json();
 
-      console.log(data)
       setLogs(data);
     };
     fetchData();
   }, []);
 
   const endpoints = [...new Set(logs.map((r) => r.endpoint))];
-  let filtered = logs.filter((r) => {
+  let f = logs.slice(0, page);
+
+  let filtered = f.filter((r) => {
     if (maliciousOnly && !r.isMalicious) return false;
     if (endpointFilter !== "all" && r.endpoint !== endpointFilter) return false;
     if (search && !r.ip.includes(search) && !r.endpoint.includes(search)) return false;
@@ -60,7 +64,7 @@ const RequestLogs = () => {
   });
 
   useEffect(() => {
-    filtered = logs.filter((r) => {
+    filtered = f.filter((r) => {
       if (maliciousOnly && !r.isMalicious) return false;
       if (endpointFilter !== "all" && r.endpoint !== endpointFilter) return false;
       if (search && !r.ip.includes(search) && !r.endpoint.includes(search)) return false;
@@ -68,17 +72,26 @@ const RequestLogs = () => {
     });
   }, [maliciousOnly, endpointFilter, search])
 
-
-
   const statusColor = (status: number) => {
     if (status === 200) return "bg-primary/10 text-primary";
     if (status === 403) return "bg-destructive/10 text-destructive";
     return "bg-warning/10 text-warning";
   };
 
-  if (logs[0].id == 0) {
-    return <p>" Loading ..."</p>
-  }
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setPage((prev) => prev + 10);
+      }
+    }, { threshold: 1.0 });
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // if (logs[0].id == 0) {
+  //   return <p>Loading ...</p>
+  // }
 
   return (
     <div className="space-y-6">
@@ -144,6 +157,7 @@ const RequestLogs = () => {
               ))}
             </tbody>
           </table>
+          <div ref={loaderRef} style={{ height: '40px' }}></div>
         </div>
       </div>
     </div>

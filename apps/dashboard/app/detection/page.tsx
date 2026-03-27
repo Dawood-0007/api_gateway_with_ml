@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -8,11 +8,11 @@ import { ArrowUpDown } from "lucide-react";
 
 interface DetectionPage {
 
-    "0-0.2": number,
-    "0.3-0.4": number,
-    "0.5-0.6": number,
-    "0.7-0.8": number,
-    "0.9-1.0": number
+  "0-0.2": number,
+  "0.3-0.4": number,
+  "0.5-0.6": number,
+  "0.7-0.8": number,
+  "0.9-1.0": number
 
 }
 
@@ -32,28 +32,31 @@ interface Logs {
 
 
 const ThreatDetection = () => {
+  const [page, setPage] = useState(10);
+  const loaderRef = useRef(null);
+
   const [logs, setLogs] = useState<Logs[]>([{
-      id: 0,
-      ip: "",
-      endpoint: "",
-      method: "",
-      requestCount: 0,
-      anomalyScore: 0,
-      statusCode: 0,
-      country: "",
-      responseTime: 0,
-      isMalicious: false,
-      createdAt: ""
-    }])
+    id: 0,
+    ip: "",
+    endpoint: "",
+    method: "",
+    requestCount: 0,
+    anomalyScore: 0,
+    statusCode: 0,
+    country: "",
+    responseTime: 0,
+    isMalicious: false,
+    createdAt: ""
+  }])
   const [requsets, setRequests] = useState<DetectionPage>({
-      "0-0.2": 0,
-      "0.3-0.4": 0,
-      "0.5-0.6": 0,
-      "0.7-0.8": 0,
-      "0.9-1.0": 0
+    "0-0.2": 0,
+    "0.3-0.4": 0,
+    "0.5-0.6": 0,
+    "0.7-0.8": 0,
+    "0.9-1.0": 0
   })
-  const [threshold, setThreshold] = useState(0.5);
-  const [sortAsc, setSortAsc] = useState(false);
+  const [threshold, setThreshold] = useState(0.1);
+  const [sortAsc, setSortAsc] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,26 +70,38 @@ const ThreatDetection = () => {
   }, [])
 
 
-  const f = logs.filter((r) => r.anomalyScore >= threshold);
-  let filtered =  sortAsc ? [...f].sort((a, b) => a.anomalyScore - b.anomalyScore) : [...f].sort((a, b) => b.anomalyScore - a.anomalyScore);
+  let f = logs.filter((r) => r.anomalyScore >= threshold);
+  f = f.slice(0, page);
+  let filtered = sortAsc ? [...f].sort((a, b) => a.anomalyScore - b.anomalyScore) : [...f].sort((a, b) => b.anomalyScore - a.anomalyScore);
 
   useEffect(() => {
     const f = logs.filter((r) => r.anomalyScore >= threshold);
-    filtered =  sortAsc ? [...f].sort((a, b) => a.anomalyScore - b.anomalyScore) : [...f].sort((a, b) => b.anomalyScore - a.anomalyScore);
+    filtered = sortAsc ? [...f].sort((a, b) => a.anomalyScore - b.anomalyScore) : [...f].sort((a, b) => b.anomalyScore - a.anomalyScore);
   }, [threshold, sortAsc]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.9) return "bg-destructive text-destructive-foreground";
-    if (score >= 0.75) return "bg-warning text-warning-foreground";
+    if (score <= 0.25) return "bg-destructive text-destructive-foreground";
+    if (score >= 0.45) return "bg-warning text-warning-foreground";
     return "bg-muted text-muted-foreground";
   };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setPage((prev) => prev + 10);
+      }
+    }, { threshold: 1.0 });
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const anomalyDistribution = [
     { range: '0.0-0.2', count: requsets["0-0.2"] },
     { range: '0.2-0.4', count: requsets["0.3-0.4"] },
-    { range: '0.4-0.6', count: requsets["0.5-0.6"]},
-    { range: '0.6-0.8', count: requsets["0.7-0.8"]},
-    { range: '0.8-1.0', count: requsets["0.9-1.0"] }
+    { range: '0.4-0.6', count: requsets["0.5-0.6"] },
+    { range: '0.6-0.8', count: requsets["0.7-0.8"] },
+    { range: '0.8-2.0', count: requsets["0.9-1.0"] }
   ];
 
   return (
@@ -157,6 +172,7 @@ const ThreatDetection = () => {
               ))}
             </tbody>
           </table>
+          <div ref={loaderRef} style={{ height: '20px' }}></div>
         </div>
       </div>
     </div>

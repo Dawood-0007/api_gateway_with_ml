@@ -45,10 +45,11 @@ def handle_req(features: Features):
     }])
        
     anomaly_score = model.decision_function(X)[0] 
+    anomaly_score = anomaly_score * 10
 
-    threshold = 0.02
+    threshold = 0.2
 
-    attack = anomaly_score < threshold
+    attack = anomaly_score <= threshold
 
     return {
         "attack": bool(attack),  

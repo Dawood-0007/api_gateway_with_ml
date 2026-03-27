@@ -25,16 +25,30 @@ const ApiPlayground = () => {
     setTimeout(() => logRef.current?.scrollTo(0, logRef.current.scrollHeight), 50);
   }, []);
 
+  const passswordPattern = () => {
+    let patternArray = [];
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+
+    for (let i = 0; i < 500; i++) {
+      let password = "";
+      for (let j = 0; j < 8; j++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        password += chars[randomIndex];
+      }
+      patternArray.push(password);
+    }
+
+    return patternArray;
+  };
+
   const simulate = useCallback(async (type: string) => {
     setLoading(type);
     addLog(`Starting ${type} simulation...`, "info");
 
-    await new Promise((r) => setTimeout(r, 500));
-
     if (type === "normal") {
       addLog("Sending 10 normal GET requests to /api/data", "success");
-      
-      for (let i = 0; i< 10; i++) {
+
+      for (let i = 0; i < 10; i++) {
         const data = await fetch("http://localhost:5000/api/data");
       }
 
@@ -43,18 +57,36 @@ const ApiPlayground = () => {
       setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: Math.floor(Math.random() * 20 + 50), malicious: 0 }]);
     } else if (type === "brute") {
       addLog("Sending 50 POST requests to /api/login...", "warning");
-      await new Promise((r) => setTimeout(r, 800));
-      addLog("ML detected brute force pattern (score: 0.89)", "danger");
-      addLog("IP 203.0.113.99 blocked automatically", "danger");
+
+      try {
+        const passwords = passswordPattern();
+        for (let pass in passwords) {
+          const res = await fetch("http://localhost:5000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email: "email@email.com", password: pass })
+          });
+  
+          if (res.status == 403) {
+            addLog("ML detected brute force pattern", "danger");
+            addLog("IP blocked automatically", "danger");
+            break;
+          }
+        }
+      } catch (err) {
+        console.log(err);
+      }
+
+
       setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 10, malicious: 50 }]);
     } else if (type === "ddos") {
       addLog("Simulating DDoS flood — 500 req/s...", "warning");
 
       try {
-        for (let i = 0; i < 1000000; i++) {
+        for (let i = 0; i < 500; i++) {
           const data = await fetch("http://localhost:5000/api/data");
-          const res = await data.json();
-
 
           if (!data.ok) {
             addLog("Traffic spike detected by anomaly model", "danger");

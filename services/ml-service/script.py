@@ -11,8 +11,8 @@ for _ in range(rows):
         ip_request_rate = np.random.randint(1, 15)
         method_encoded = np.random.choice([0, 1])
         avg_time_between_requests = round(np.random.uniform(0.5, 5.0), 3)
-        unique_endpoints = np.random.randint(2, 8)
-        is_sensitive_endpoint = np.random.choice([0, 1], p=[0.85, 0.15])
+        unique_endpoints = np.random.randint(1, 8)
+        is_sensitive_endpoint = np.random.choice([0, 1])
 
     else:
 

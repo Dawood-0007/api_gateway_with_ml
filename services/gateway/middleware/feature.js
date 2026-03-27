@@ -3,7 +3,7 @@ import { createClient } from "redis";
 const redis = await createClient().on("error", (err) => console.log("Redis Client Error", err))
     .connect();
 
-const sensitiveEndpoints = ["login", "register", "refresh"];
+const sensitiveEndpoints = ["/api/auth/login", "/api/auth/register", "/api/auth/refresh"];
 
 const methodMap = {
     GET: 0,

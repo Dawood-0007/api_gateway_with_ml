@@ -10,6 +10,7 @@ export const mlPrediction = async (req, res, next) => {
   );
 
   req.anomalyScore = response.data.anomaly_score;
+  console.log(response.data.attack)
   req.attack = response.data.attack;
 
   next();
