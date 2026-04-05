@@ -28,4 +28,4 @@ POST http://localhost:5000/api/auth/logout
 
 ###
 
-GET http://localhost:5000/api/stat/analytics
+GET http://localhost:5000/api/stat/hourlyData

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Flame, CloudLightning, Bug, Loader2 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 interface LogEntry {
   time: string;
@@ -12,9 +12,13 @@ interface LogEntry {
 }
 
 const ApiPlayground = () => {
-  const [chartData, setChartData] = useState(() =>
-    Array.from({ length: 20 }, (_, i) => ({ t: i, normal: Math.floor(Math.random() * 30 + 20), malicious: 0 }))
-  );
+  const [timeData, setTimeData] = useState([{
+    time: "",
+    total: 0,
+    malicious: 0
+  }]);
+  const [fetchNow, setFetchNow] = useState<boolean>(false);
+
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -54,7 +58,6 @@ const ApiPlayground = () => {
 
       addLog("Sent and all request pass anomaly threshold", "success");
 
-      setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: Math.floor(Math.random() * 20 + 50), malicious: 0 }]);
     } else if (type === "brute") {
       addLog("Sending 50 POST requests to /api/login...", "warning");
 
@@ -78,9 +81,6 @@ const ApiPlayground = () => {
       } catch (err) {
         console.log(err);
       }
-
-
-      setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 10, malicious: 50 }]);
     } else if (type === "ddos") {
       addLog("Simulating DDoS flood — 500 req/s...", "warning");
 
@@ -97,8 +97,6 @@ const ApiPlayground = () => {
       } catch (err) {
         console.log(err);
       }
-
-      setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 15, malicious: 120 }]);
     } else if (type === "payload") {
       addLog("Sending SQL injection payload: ' OR 1=1 --", "warning");
 
@@ -118,16 +116,24 @@ const ApiPlayground = () => {
       } catch (err) {
         console.log(err);
       }
-
-
-
-      setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 25, malicious: 8 }]);
     }
+
+    setFetchNow(!fetchNow);
 
     setLoading(null);
   }, [addLog]);
 
   const logColors = { info: "text-muted-foreground", warning: "text-warning", danger: "text-destructive", success: "text-primary" };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("http://localhost:5000/api/stat/hourlyData", { method: "GET" });
+      const data = await response.json();
+
+      setTimeData(data)
+    }
+    fetchData();
+  }, [fetchNow]);
 
   return (
     <div className="space-y-6">
@@ -159,25 +165,29 @@ const ApiPlayground = () => {
 
       <div className="bg-card border rounded-lg p-5">
         <h3 className="text-sm font-semibold mb-4">Live Traffic Monitor</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="pgGreen" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(152, 60%, 45%)" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="pgRed" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
+        <ResponsiveContainer width="100%" height={260}>
+          <LineChart data={timeData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(145, 20%, 90%)" />
-            <XAxis dataKey="t" tick={false} stroke="hsl(160, 10%, 45%)" />
+            <XAxis dataKey="time" tick={{ fontSize: 10 }} stroke="hsl(160, 10%, 45%)" />
             <YAxis tick={{ fontSize: 10 }} stroke="hsl(160, 10%, 45%)" />
             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-            <Area type="monotone" dataKey="normal" stroke="hsl(152, 60%, 45%)" fill="url(#pgGreen)" strokeWidth={2} />
-            <Area type="monotone" dataKey="malicious" stroke="hsl(0, 72%, 51%)" fill="url(#pgRed)" strokeWidth={2} />
-          </AreaChart>
+
+            <Line
+              type="monotone"
+              dataKey="total"
+              stroke="hsl(152, 60%, 45%)"
+              strokeWidth={2}
+              dot={false}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="malicious"
+              stroke="hsl(0, 72%, 51%)"
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
         </ResponsiveContainer>
       </div>
 

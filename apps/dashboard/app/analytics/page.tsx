@@ -45,6 +45,7 @@ const TrafficAnalytics = () => {
 
       setData(data);
       setTimeData(data.hourlyReq)
+      console.log(data.hourlyReq);
     }
     fetchData();
   }, []);

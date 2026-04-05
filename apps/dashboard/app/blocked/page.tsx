@@ -1,37 +1,29 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { blockedIPs as initialBlockedIPs, BlockedIP } from "@/data/mockData";
+import { BlockedIP } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Ban, Plus, Unlock } from "lucide-react";
 import { toast } from "sonner";
 
-interface BlockedPage {
-  blockedIps: [{
-    ip: string,
-    reason: string,
-    blockedAt: string
-  }],
-  ipCount: [{
-    ip: string,
-    hit: number
-  }]
-}
+type BlockedPage = {
+  blockedIps: {
+    ip: string;
+    reason: string;
+    blockedAt: string;
+  }[];
+  ipCount: {
+    ip: string;
+    hit: number;
+  }[];
+};
 
 const BlockedIPsPage = () => {
-  const [ips, setIps] = useState<BlockedIP[]>(initialBlockedIPs);
   const [data, setData] = useState<BlockedPage>({
-    blockedIps: [{
-      ip: "",
-      reason: "",
-      blockedAt: "",
-    }],
-    ipCount: [{
-      ip: "",
-      hit: 0
-    }]
+    blockedIps: [],
+    ipCount: []
   });
 
   const [newIP, setNewIP] = useState("");
@@ -50,18 +42,21 @@ const BlockedIPsPage = () => {
 
   const handleUnblock = async (id: string) => {
 
-    await fetch("http://localhost:5000/api/stat/unblock", {
+    await fetch("http://localhost:5000/api/stat/unblockIp", {
       method: "POST",
-      headers : {
+      headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ip: id})
+      body: JSON.stringify({ ip: id })
     });
 
-    const filterData = data.blockedIps.filter((ip) => ip.ip !== id);
-    // setData({ filterData, data.ipCount});
-    setChange(!change);
     toast.success("IP unblocked successfully");
+
+    setData(prev => ({
+      ...prev,
+      blockedIps: prev.blockedIps.filter(item => item.ip !== id),
+      ipCount: prev.ipCount.filter(item => item.ip !== id)
+    }));
   };
 
   const handleBlock = async () => {
@@ -84,7 +79,6 @@ const BlockedIPsPage = () => {
       country: "Pakistan",
       requestCount: 0,
     };
-    setIps([entry, ...ips]);
     setNewIP("");
     setNewReason("");
     toast.success(`IP ${newIP} blocked`);

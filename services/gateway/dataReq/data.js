@@ -49,81 +49,93 @@ dataRouter.get("/dash", async (req, res) => {
 });
 
 dataRouter.get("/analytics", async (req, res) => {
+  try {
     const [
-        endpintsCount,
-        methodCount,
-        ipCount,
-        hourlyCount
+      endpointsCount,
+      methodCount,
+      ipCount,
+      hourlyCount
     ] = await Promise.all([
-        prisma.requestLog.groupBy({
-            by: ['endpoint'],
-            _count: {
-                endpoint: true,
-            },
-        }),
-        prisma.requestLog.groupBy({
-            by: ['method'],
-            _count: {
-                method: true,
-            },
-        }),
-        prisma.requestLog.groupBy({
-            by: ['ip'],
-            _count: {
-                ip: true,
-            },
-        }),
-        await prisma.$queryRaw`
-            SELECT 
-            TO_CHAR(DATE_TRUNC('hour', "createdAt"), 'HH24:00') as time,
-            COUNT(*)::int as total,
-            COUNT(*) FILTER (WHERE "isMalicious" = true)::int as malicious
-            FROM "RequestLog"
-            WHERE "createdAt" >= NOW() - INTERVAL '24 hours'
-            GROUP BY time
-            ORDER BY time;
-            `
+      prisma.requestLog.groupBy({
+        by: ['endpoint'],
+        _count: { endpoint: true },
+      }),
+      prisma.requestLog.groupBy({
+        by: ['method'],
+        _count: { method: true },
+      }),
+      prisma.requestLog.groupBy({
+        by: ['ip'],
+        _count: { ip: true },
+      }),
+      prisma.$queryRaw`
+        SELECT 
+          TO_CHAR(
+            DATE_TRUNC('hour', "createdAt" AT TIME ZONE 'Asia/Karachi'),
+            'HH24:00'
+          ) as time,
+          COUNT(*)::int as total,
+          COUNT(*) FILTER (WHERE "isMalicious" = true)::int as malicious
+        FROM "RequestLog"
+        WHERE "createdAt" >= NOW() - INTERVAL '24 hours'
+        GROUP BY time
+        ORDER BY time;
+      `
     ]);
 
     const hours = [];
 
     for (let i = 23; i >= 0; i--) {
-        const d = new Date();
-        d.setHours(d.getHours() - i);
+      const d = new Date();
+      d.setHours(d.getHours() - i);
 
-        const hour = d.getHours().toString().padStart(2, "0") + ":00";
+      const hour = d.toLocaleString("en-US", {
+        timeZone: "Asia/Karachi",
+        hour: "2-digit",
+        hour12: false
+      }) + ":00";
 
-        hours.push({
-            time: hour,
-            total: 0,
-            malicious: 0
-        });
-    };
+      hours.push({
+        time: hour,
+        total: 0,
+        malicious: 0
+      });
+    }
 
     const map = {};
 
     hourlyCount.forEach(r => {
-        map[r.time] = {
-            time: r.time,
-            total: Number(r.total),
-            malicious: Number(r.malicious)
-        };
+      map[r.time] = {
+        time: r.time,
+        total: Number(r.total),
+        malicious: Number(r.malicious)
+      };
     });
 
+
     const result = hours.map(h => map[h.time] || h);
+    console.log(result)
 
     res.status(200).json({
-        endpointsCount: endpintsCount.map((e) => {
-            return { endpoint: e.endpoint, hit: e._count.endpoint }
-        }),
-        methodCount: methodCount.map((e) => {
-            return { method: e.method, hit: e._count.method }
-        }),
-        ipCount: ipCount.map((e) => {
-            return { ip: e.ip, hit: e._count.ip }
-        }),
-        hourlyReq: result
-    })
+      endpointsCount: endpointsCount.map(e => ({
+        endpoint: e.endpoint,
+        hit: e._count.endpoint
+      })),
+      methodCount: methodCount.map(e => ({
+        method: e.method,
+        hit: e._count.method
+      })),
+      ipCount: ipCount.map(e => ({
+        ip: e.ip,
+        hit: e._count.ip
+      })),
+      hourlyReq: result
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error" });
+  }
 });
 
 dataRouter.post("/block", async (req, res) => {
@@ -225,6 +237,79 @@ dataRouter.get("/allUser", async (req, res) => {
     });
 
     res.status(200).json(data);
+});
+
+dataRouter.get("/hourlyData", async (req, res) => {
+    try {
+    const hourlyCount = await 
+      prisma.$queryRaw`
+        SELECT 
+          TO_CHAR(
+            DATE_TRUNC('hour', "createdAt" AT TIME ZONE 'Asia/Karachi'),
+            'HH24:00'
+          ) as time,
+          COUNT(*)::int as total,
+          COUNT(*) FILTER (WHERE "isMalicious" = true)::int as malicious
+        FROM "RequestLog"
+        WHERE "createdAt" >= NOW() - INTERVAL '24 hours'
+        GROUP BY time
+        ORDER BY time;
+      `
+
+    const hours = [];
+
+    for (let i = 23; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(d.getHours() - i);
+
+      const hour = d.toLocaleString("en-US", {
+        timeZone: "Asia/Karachi",
+        hour: "2-digit",
+        hour12: false
+      }) + ":00";
+
+      hours.push({
+        time: hour,
+        total: 0,
+        malicious: 0
+      });
+    }
+
+    const map = {};
+
+    hourlyCount.forEach(r => {
+      map[r.time] = {
+        time: r.time,
+        total: Number(r.total),
+        malicious: Number(r.malicious)
+      };
+    });
+
+
+    const result = hours.map(h => map[h.time] || h);
+
+    res.status(200).json(result);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
+dataRouter.post("/unblockIp", async (req, res) => {
+    const { ip } = req.body;
+    try {
+        await prisma.blockedIP.delete({
+            where: {
+                ip: ip
+            }
+        });
+
+        res.status(200).json({ message: "Unbloecked Successfully"})
+
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 export default dataRouter;
