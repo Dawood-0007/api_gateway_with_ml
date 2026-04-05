@@ -16,11 +16,18 @@ export const featureExtraction = async (req, res, next) => {
     const ip = req.clientIP;
     const endpoint = req.path;
 
+    if (sensitiveEndpoints.includes(endpoint)) {
+        const email = req.body.email ? req.body.email : "";
+        if (email.replaceAll(" ", "").toLowerCase().includes("\'or1=1") || email.replaceAll(" ", "").toLowerCase().includes('\"or1=1')) {
+            req.injection = true;
+        }
+    }
+
     const key = `ip:${ip}:count`;
-    
+
     await redis.incr(key);
     await redis.expire(key, 10);
-    
+
     // const loginAttempt = `ip:${ip}:login:total`;
     // const failedAttempt = `ip:${ip}:login:failed`;
     // await redis.incr(`ip:${ip}:login_total`);

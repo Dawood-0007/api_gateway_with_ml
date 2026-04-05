@@ -1,4 +1,4 @@
-GET http://localhost:5000/api/data
+GET http://localhost:5000/
 
 ###
 
@@ -16,10 +16,10 @@ POST http://localhost:5000/api/auth/register
 content-type: application/json
 
 {
-    "email": "David",
+    "email": "email@email.com",
     "password": "123456",
     "role": "admin",
-    "name": "Security Analyst"
+    "name": "Admin"
 }
 
 ###

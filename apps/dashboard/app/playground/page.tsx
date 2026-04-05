@@ -68,7 +68,7 @@ const ApiPlayground = () => {
             },
             body: JSON.stringify({ email: "email@email.com", password: pass })
           });
-  
+
           if (res.status == 403) {
             addLog("ML detected brute force pattern", "danger");
             addLog("IP blocked automatically", "danger");
@@ -101,9 +101,26 @@ const ApiPlayground = () => {
       setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 15, malicious: 120 }]);
     } else if (type === "payload") {
       addLog("Sending SQL injection payload: ' OR 1=1 --", "warning");
-      await new Promise((r) => setTimeout(r, 600));
-      addLog("ML flagged payload (anomaly score: 0.95)", "danger");
-      addLog("Request blocked, IP flagged for review", "danger");
+
+      try {
+        const response = await fetch("http://localhost:5000/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email: "email@email.com' OR 1=1", password: "123456" })
+        });
+
+        if (!response.ok) {
+          addLog("ML flagged payload (anomaly score: -0.01)", "danger");
+          addLog("Request blocked, IP flagged for review", "danger");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+
+
+
       setChartData((prev) => [...prev.slice(-19), { t: prev.length, normal: 25, malicious: 8 }]);
     }
 
