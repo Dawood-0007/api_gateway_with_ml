@@ -55,7 +55,7 @@ const ThreatDetection = () => {
     "0.7-0.8": 0,
     "0.9-1.0": 0
   })
-  const [threshold, setThreshold] = useState(0.1);
+  const [threshold, setThreshold] = useState(0);
   const [sortAsc, setSortAsc] = useState(true);
 
   useEffect(() => {
@@ -70,6 +70,7 @@ const ThreatDetection = () => {
   }, [])
 
 
+  console.log(logs)
   let f = logs.filter((r) => r.anomalyScore >= threshold);
   f = f.slice(0, page);
   let filtered = sortAsc ? [...f].sort((a, b) => a.anomalyScore - b.anomalyScore) : [...f].sort((a, b) => b.anomalyScore - a.anomalyScore);
@@ -130,7 +131,7 @@ const ThreatDetection = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">Threshold:</span>
-              <Slider value={[threshold]} onValueChange={(v) => setThreshold(v[0])} min={0} max={1} step={0.05} className="w-32" />
+              <Slider value={[threshold]} onValueChange={(v) => setThreshold(v[0])} min={0} max={1.5} step={0.1} className="w-32" />
               <span className="text-xs font-mono font-semibold w-8">{threshold.toFixed(2)}</span>
             </div>
             <span className="text-xs text-muted-foreground">{filtered.length} results</span>

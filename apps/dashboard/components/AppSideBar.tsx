@@ -36,7 +36,6 @@ const mainItems = [
 
 const toolItems = [
   { title: "API Playground", url: "/playground", icon: FlaskConical },
-  { title: "ML Monitoring", url: "/ml", icon: Brain },
 ];
 
 const adminItems = [
