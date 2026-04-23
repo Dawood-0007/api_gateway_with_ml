@@ -1,9 +1,10 @@
 import { createClient } from "redis";
+import { prisma } from "../lib/prisma.js";
 
 const redis = await createClient().on("error", (err) => console.log("Redis Client Error", err))
     .connect();
 
-const sensitiveEndpoints = ["/api/auth/login", "/api/auth/register", "/api/auth/refresh"];
+const sensitiveEndpoints = ["/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/data"]
 
 const methodMap = {
     GET: 0,
@@ -17,10 +18,22 @@ export const featureExtraction = async (req, res, next) => {
     const endpoint = req.path;
 
     if (sensitiveEndpoints.includes(endpoint)) {
-        const email = req.body.email ? req.body.email : "";
-        if (email.replaceAll(" ", "").toLowerCase().includes("\'or1=1") || email.replaceAll(" ", "").toLowerCase().includes('\"or1=1')) {
-            req.injection = true;
+        const result = await prisma.blockedIP.findUnique({
+            where: {
+                ip: ip
+            }
+        });
+
+        if (result) {
+            req.blocked = true;
         }
+        else {
+            const email = req.body.email ? req.body.email : "";
+            if (email.replaceAll(" ", "").toLowerCase().includes("\'or1=1") || email.replaceAll(" ", "").toLowerCase().includes('\"or1=1')) {
+                req.injection = true;
+            }
+        }
+
     }
 
     const key = `ip:${ip}:count`;

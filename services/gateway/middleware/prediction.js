@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const mlPrediction = async (req, res, next) => {
 
-  if (req.injection) {
+  if (req.injection || req.blocked) {
     req.anomalyScore = 0.01
     req.attack = true;
   }
