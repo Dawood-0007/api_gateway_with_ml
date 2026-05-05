@@ -52,6 +52,7 @@ const TrafficAnalytics = () => {
 
   const fillColors = ['hsl(152, 60%, 45%)', 'hsl(210, 70%, 50%)', 'hsl(38, 92%, 50%)', 'hsl(0, 72%, 51%)'];
 
+  
   const topEndpoints =
     data.endpointsCount.map((e) => {
       return { endpoint: e.endpoint, hits: e.hit }

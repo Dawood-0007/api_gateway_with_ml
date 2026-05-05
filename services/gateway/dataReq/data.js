@@ -318,4 +318,21 @@ dataRouter.post("/unblockIp", async (req, res) => {
   }
 });
 
+dataRouter.get("/checkIp", async (req, res) => {
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const data = await prisma.blockedIP.findUnique({
+      where : {
+        ip: ip
+      }
+    });
+    if (data) {
+      return res.status(200).json({contain: true});
+    }
+    return res.status(200).json({contain: false});
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 export default dataRouter;

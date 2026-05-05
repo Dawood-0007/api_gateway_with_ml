@@ -109,7 +109,7 @@ const BlockedIPsPage = () => {
 
       <div className="bg-card border rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold">Blocked IPs ({data.blockedIps.length})</h3>
+          <h3 className="text-sm font-semibold">Blocked IPs ({data.blockedIps ? data.blockedIps.length ? data.blockedIps.length : 0 : 0})</h3>
           <Ban className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="overflow-x-auto">

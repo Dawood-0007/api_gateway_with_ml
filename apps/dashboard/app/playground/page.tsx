@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Flame, CloudLightning, Bug, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { toast } from "sonner";
 
 interface LogEntry {
   time: string;
@@ -48,7 +49,10 @@ const ApiPlayground = () => {
 
   const handleUnblock = async () => {
     try {
-      await fetch("http://localhost:5000/api/stat/unblockIp");
+      await fetch("http://localhost:5000/api/stat/unblockIp", { method : "POST"});
+      setIsBlocked(false);
+
+      toast.success("IP unblocked successfully");
     } catch (error) {
       console.log(error)
     }
@@ -72,6 +76,7 @@ const ApiPlayground = () => {
 
           hasError = true;
           addLog(message, "danger");
+          setIsBlocked(true);
           break;
         }
       }
@@ -104,6 +109,7 @@ const ApiPlayground = () => {
           if (res.status == 500) {
             addLog("ML detected brute force pattern", "danger");
             addLog("IP blocked automatically", "danger");
+            setIsBlocked(true);
             break;
           }
 
@@ -112,6 +118,7 @@ const ApiPlayground = () => {
             const message = data.message;
 
             addLog(message, "danger");
+            setIsBlocked(true);
             break;
           }
 
@@ -130,7 +137,8 @@ const ApiPlayground = () => {
           console.log(data.status)
           if (data.status == 500) {
             addLog("Traffic spike detected by anomaly model", "danger");
-            addLog("Traffic normalized", "success");
+            addLog("IP Blocked automatically", "success");
+            setIsBlocked(true);
             break;
           }
 
@@ -140,6 +148,7 @@ const ApiPlayground = () => {
             const message = res.message;
 
             addLog(message, "danger");
+            setIsBlocked(true);
             break;
           }
         }
@@ -161,6 +170,7 @@ const ApiPlayground = () => {
         if (response.status == 403) {
           addLog("ML flagged payload (anomaly score: -0.01)", "danger");
           addLog("Request blocked, IP flagged for review", "danger");
+          setIsBlocked(true);
         }
 
         if (!response.ok) {
@@ -168,6 +178,7 @@ const ApiPlayground = () => {
           const message = data.message;
 
           addLog(message, "danger");
+          setIsBlocked(true);
         }
       } catch (err) {
         console.log(err);
@@ -184,9 +195,12 @@ const ApiPlayground = () => {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch("http://localhost:5000/api/stat/hourlyData", { method: "GET" });
+      const response2 = await fetch("http://localhost:5000/api/stat/checkIp", { method: "GET"});
       const data = await response.json();
+      const data2 = await response2.json();
 
-      setTimeData(data)
+      setTimeData(data);
+      setIsBlocked(data2.contain)
     }
     fetchData();
   }, [fetchNow]);
