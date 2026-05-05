@@ -22,6 +22,7 @@ const ApiPlayground = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
 
   const addLog = useCallback((message: string, type: LogEntry["type"]) => {
     const time = new Date().toLocaleTimeString();
@@ -45,6 +46,14 @@ const ApiPlayground = () => {
     return patternArray;
   };
 
+  const handleUnblock = async () => {
+    try {
+      await fetch("http://localhost:5000/api/stat/unblockIp");
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const simulate = useCallback(async (type: string) => {
     setLoading(type);
     addLog(`Starting ${type} simulation...`, "info");
@@ -52,11 +61,24 @@ const ApiPlayground = () => {
     if (type === "normal") {
       addLog("Sending 10 normal GET requests to /api/data", "success");
 
+      let hasError = false;
+
       for (let i = 0; i < 10; i++) {
         const data = await fetch("http://localhost:5000/api/data");
+
+        if (!data.ok) {
+          const res = await data.json();
+          const message = res.message;
+
+          hasError = true;
+          addLog(message, "danger");
+          break;
+        }
       }
 
-      addLog("Sent and all request pass anomaly threshold", "success");
+      if (!hasError) {
+        addLog("Sent all 10 normal GET requests successfully", "success");
+      }
 
     } else if (type === "brute") {
       addLog("Sending 50 POST requests to /api/login...", "warning");
@@ -72,11 +94,28 @@ const ApiPlayground = () => {
             body: JSON.stringify({ email: "email@email.com", password: pass })
           });
 
-          if (res.status == 403) {
+
+          console.log(res.status);
+
+          if (res.status == 400) {
+            continue;
+          }
+
+          if (res.status == 500) {
             addLog("ML detected brute force pattern", "danger");
             addLog("IP blocked automatically", "danger");
             break;
           }
+
+          if (!res.ok) {
+            const data = await res.json();
+            const message = data.message;
+
+            addLog(message, "danger");
+            break;
+          }
+
+
         }
       } catch (err) {
         console.log(err);
@@ -88,9 +127,19 @@ const ApiPlayground = () => {
         for (let i = 0; i < 500; i++) {
           const data = await fetch("http://localhost:5000/api/data");
 
-          if (!data.ok) {
+          console.log(data.status)
+          if (data.status == 500) {
             addLog("Traffic spike detected by anomaly model", "danger");
             addLog("Traffic normalized", "success");
+            break;
+          }
+
+          if (!data.ok) {
+
+            const res = await data.json();
+            const message = res.message;
+
+            addLog(message, "danger");
             break;
           }
         }
@@ -109,9 +158,16 @@ const ApiPlayground = () => {
           body: JSON.stringify({ email: "email@email.com' OR 1=1", password: "123456" })
         });
 
-        if (!response.ok) {
+        if (response.status == 403) {
           addLog("ML flagged payload (anomaly score: -0.01)", "danger");
           addLog("Request blocked, IP flagged for review", "danger");
+        }
+
+        if (!response.ok) {
+          const data = await response.json();
+          const message = data.message;
+
+          addLog(message, "danger");
         }
       } catch (err) {
         console.log(err);
@@ -137,9 +193,16 @@ const ApiPlayground = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">API Playground</h1>
-        <p className="text-sm text-muted-foreground mt-1">Simulate attacks and watch the WAF respond in real-time</p>
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">API Playground</h1>
+          <p className="text-sm text-muted-foreground mt-1">Simulate attacks and watch the WAF respond in real-time</p>
+        </div>
+        <div className={isBlocked ? "" : "hidden"}>
+          <Button className="cursor-pointer bg-red-800"
+                  onClick={handleUnblock}
+            >Unblock IP Now</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

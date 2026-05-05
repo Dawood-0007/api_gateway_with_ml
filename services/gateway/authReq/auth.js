@@ -18,8 +18,6 @@ const client = await createClient().on("error", (err) => console.log("Redis Clie
 authRouter.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
-    const attack = req.attck;
-
     const dbQuery = await prisma.user.findUnique({
         where: {
             email: email
@@ -30,7 +28,7 @@ authRouter.post("/login", async (req, res) => {
         const comparision = bcrypt.compareSync(password, dbQuery.passwordHash);
 
         if (!comparision) {
-            return res.sendStatus(402);
+            return res.sendStatus(400);
         }
         else {
 

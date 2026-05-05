@@ -18,6 +18,7 @@ export const featureExtraction = async (req, res, next) => {
     const endpoint = req.path;
 
     if (sensitiveEndpoints.includes(endpoint)) {
+
         const result = await prisma.blockedIP.findUnique({
             where: {
                 ip: ip
@@ -28,31 +29,17 @@ export const featureExtraction = async (req, res, next) => {
             req.blocked = true;
         }
         else {
-            const email = req.body.email ? req.body.email : "";
+            const email = req.body ? req.body.email : "";
             if (email.replaceAll(" ", "").toLowerCase().includes("\'or1=1") || email.replaceAll(" ", "").toLowerCase().includes('\"or1=1')) {
                 req.injection = true;
             }
         }
-
     }
 
     const key = `ip:${ip}:count`;
 
     await redis.incr(key);
     await redis.expire(key, 10);
-
-    // const loginAttempt = `ip:${ip}:login:total`;
-    // const failedAttempt = `ip:${ip}:login:failed`;
-    // await redis.incr(`ip:${ip}:login_total`);
-
-    // if (loginFailed) {
-    //     await redis.incr(`ip:${ip}:login_failed`);
-    // }
-
-    // const total = await redis.get(`ip:${ip}:login_total`);
-    // const failed = await redis.get(`ip:${ip}:login_failed`);
-
-    // const failed_login_ratio = failed / total;
 
     const rate = await redis.get(key);
 

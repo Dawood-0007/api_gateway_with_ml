@@ -2,6 +2,13 @@ import { prisma } from "../lib/prisma.js";
 import geoip from "geoip-lite";
 
 export const requestLogger = async (req, res, next) => {
+    
+    if (req.method === 'OPTIONS') {
+        return next();
+    }
+
+    console.log("coming here")
+
     const ip = req.clientIP;
     const geo = geoip.lookup(ip);
     const status = req.attack ? req.injection || req.blocked ? 403 : 500 : 200;
@@ -32,17 +39,21 @@ export const requestLogger = async (req, res, next) => {
 
     if (req.attack) {
         if (!req.blocked) {
+            console.log("Blocking malicious IP:", ip);
             await prisma.blockedIP.create({
                 data: {
                     ip: ip,
-                    reason: req.injection ? "SQL Injection Detected" : req.blocked ? "IP already Blocked" : "Malicious Request Detected"
+                    reason: req.injection ? "SQL Injection Detected" : "Malicious Request Detected"
                 }
             });
-
+            return res.status(status).json({
+                message: "Blocked: suspicious traffic detected"
+            });
+        } else {
+            return res.status(403).json({
+                message: "IP is Blocked"
+            });
         }
-        return res.status(status).json({
-            message: "Blocked: suspicious traffic detected"
-        });
     }
 
     next();
