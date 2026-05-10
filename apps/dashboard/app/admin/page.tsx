@@ -1,6 +1,5 @@
 "use client"
 
-import { adminUsers } from "@/data/mockData";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Eye } from "lucide-react";

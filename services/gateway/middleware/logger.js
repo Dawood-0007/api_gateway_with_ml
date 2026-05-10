@@ -7,8 +7,6 @@ export const requestLogger = async (req, res, next) => {
         return next();
     }
 
-    console.log("coming here")
-
     const ip = req.clientIP;
     const geo = geoip.lookup(ip);
     const status = req.attack ? req.injection || req.blocked ? 403 : 500 : 200;
