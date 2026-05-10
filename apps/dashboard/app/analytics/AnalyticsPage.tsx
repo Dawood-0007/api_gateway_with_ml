@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react";
-import { generateTimeSeriesData } from "@/data/mockData";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -46,6 +45,24 @@ const TrafficAnalytics = ({ initialData }: Props) => {
             }]
         }
     );
+
+    const generateTimeSeriesData = (hours: number, interval: number = 5) => {
+        const data = [];
+        const now = new Date();
+        for (let i = hours * 60; i >= 0; i -= interval) {
+            const time = new Date(now.getTime() - i * 60000);
+            data.push({
+                time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: time.toISOString(),
+                normal: Math.floor(Math.random() * 80 + 40),
+                malicious: Math.floor(Math.random() * 15 + 2),
+                total: 0,
+            });
+            data[data.length - 1].total = data[data.length - 1].normal + data[data.length - 1].malicious;
+        }
+        return data;
+    };
+
     const ti = useMemo(() => {
         const hours = timeRange === "1h" ? 1 : timeRange === "24h" ? 24 : 168;
         return generateTimeSeriesData(hours, timeRange === "1h" ? 2 : timeRange === "24h" ? 30 : 360);

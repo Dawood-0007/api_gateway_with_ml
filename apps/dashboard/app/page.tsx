@@ -2,7 +2,6 @@
 
 import { Activity, ShieldAlert, Ban, Zap, TrendingUp, Gauge } from "lucide-react";
 import { StatCard } from "@/components/statCard";
-import { generateTimeSeriesData } from "@/data/mockData";
 import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { useMemo, useEffect, useState } from "react";
 
@@ -19,7 +18,6 @@ interface dashboardData {
 };
 
 const Overview = () => {
-  const timeData = useMemo(() => generateTimeSeriesData(1, 2), []);
   const [data, setData] = useState<dashboardData>({
     malicious: 0,
     normal: 0,
