@@ -6,7 +6,6 @@ import {
   ShieldAlert,
   Ban,
   FlaskConical,
-  Brain,
   Users,
   ScrollText,
   Shield,
@@ -90,7 +89,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">SENTINEL</h1>
+              <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-tight">GATEWAY</h1>
               <p className="text-[10px] text-sidebar-foreground/50 tracking-wider">WAF DASHBOARD</p>
             </div>
           )}
