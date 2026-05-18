@@ -1,0 +1,55 @@
+services:
+  frontend:
+    build:
+      context: ../apps/dashboard
+    container_name: dashboard_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../apps/dashboard:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev
+
+  backend:
+    build:
+      context: ../services/gateway
+    container_name: gateway_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../services/gateway:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run devStart
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    
+  ml-service:
+    build:
+      context: ../services/ml-service
+    container_name: python_ml_service
+    ports:
+      - "8000:8000" 
+    volumes:
+      - ../services/ml-service:/app
+    working_dir: /app
+    command: uvicorn service:app --host 0.0.0.0 --port 8000 --reload
+  
+  database:
+    image: postgres:alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "sqldata(0123)))"
+      POSTGRES_DB: gateway
+    ports:
+      - "5433:5432"

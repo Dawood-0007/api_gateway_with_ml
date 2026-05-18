@@ -1,8 +1,9 @@
 import OverviewPage from "@/components/DashboardPage";
 
 export default async function Overview() {
+  const baseUrl = process.env.BACKEND_SERVER || process.env.NEXT_PUBLIC_BACKEND_CLIENT;
  
-      const result = await fetch("http://localhost:5000/api/stat/dash", {
+      const result = await fetch(`${baseUrl}/api/stat/dash`, {
         method: "GET"
       });
       const data = await result.json();

@@ -1,9 +1,10 @@
 import AdminManagementPage from "./AdminPage";
 
 export default async function AdminManagement() {
+  const baseUrl = process.env.BACKEND_SERVER || process.env.NEXT_PUBLIC_BACKEND_CLIENT;
 
-      const response = await fetch("http://localhost:5000/api/stat/allUser", { method: "GET" });
-      const data = await response.json();
+  const result = await fetch(`${baseUrl}/api/stat/allUser`, { method: "GET" });
+  const data = await result.json();
 
   return (
     <div className="space-y-6">

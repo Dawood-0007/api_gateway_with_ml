@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 import { prisma } from "../lib/prisma.js";
 
-const redis = await createClient().on("error", (err) => console.log("Redis Client Error", err))
+const redis = await createClient({ url: process.env.REDIS_URL }).on("error", (err) => console.log("Redis Client Error", err))
     .connect();
 
 const sensitiveEndpoints = ["/api/auth/login", "/api/auth/register", "/api/auth/refresh", "/api/data"]

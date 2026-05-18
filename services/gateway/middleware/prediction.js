@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const mlPrediction = async (req, res, next) => {
+  const baseUrl = process.env.ML_SERVICE;
 
   if (req.injection || req.blocked) {
     req.anomalyScore = 0.01
@@ -8,7 +9,7 @@ export const mlPrediction = async (req, res, next) => {
   }
    else {
      const response = await axios.post(
-       "http://localhost:8000/predict",
+       `${baseUrl}/predict`,
        req.features
      );
    

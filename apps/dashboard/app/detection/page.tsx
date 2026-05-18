@@ -1,9 +1,10 @@
 import ThreatPage from "./DetectionPage";
 
 export default async function ThreatDetection() {
-  
-      const response = await fetch("http://localhost:5000/api/stat/detection", { method: "GET", cache: "no-store" });
-      const data = await response.json();
+  const baseUrl = process.env.BACKEND_SERVER || process.env.NEXT_PUBLIC_BACKEND_CLIENT;
+
+  const result = await fetch(`${baseUrl}/api/stat/detection`, { method: "GET", cache: "no-store" });
+  const data = await result.json();
 
   return (
     <div className="space-y-6">

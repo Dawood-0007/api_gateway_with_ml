@@ -12,7 +12,7 @@ authRouter.use(express.urlencoded({ extended: true }));
 
 authRouter.use(cookieParser());
 
-const client = await createClient().on("error", (err) => console.log("Redis Client Error", err))
+const client = await createClient({ url: process.env.REDIS_URL }).on("error", (err) => console.log("Redis Client Error", err))
     .connect();
 
 authRouter.post("/login", async (req, res) => {

@@ -1,8 +1,10 @@
 import RequestLogsPage from "./LogsTable";
 
 export default async function RequestLogs() {
-      const response = await fetch("http://localhost:5000/api/stat/logs", { method: "GET" });
-      const data = await response.json();
+  const baseUrl = process.env.BACKEND_SERVER || process.env.NEXT_PUBLIC_BACKEND_CLIENT;
+
+  const result = await fetch(`${baseUrl}/api/stat/logs`, { method: "GET" });
+      const data = await result.json();
 
   return (
     <div className="space-y-6">

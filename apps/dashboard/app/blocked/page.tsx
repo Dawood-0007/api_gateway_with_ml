@@ -1,10 +1,12 @@
 import BlockedIPsTable from "./BlockedIpsTable";
 
 export default async function BlockedIPsPage() {
-  const res = await fetch("http://localhost:5000/api/stat/blocked", {
+  const baseUrl = process.env.BACKEND_SERVER || process.env.NEXT_PUBLIC_BACKEND_CLIENT;
+
+  const result = await fetch(`${baseUrl}/api/stat/blocked`, {
     cache: "no-store",
   });
-  const data = await res.json();
+  const data = await result.json();
 
   return (
     <div className="space-y-6">
