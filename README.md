@@ -75,6 +75,67 @@ fastapi dev service.py
 
 ---
 
+# Database Setup & Prisma Migration
+
+This project uses **PostgreSQL** with **Prisma ORM** for database management and migrations.
+
+---
+
+# Prisma Setup (Non-Docker)
+
+## 1. Configure Environment Variables
+
+Create a `.env` file inside `services/gateway/`.
+
+Example:
+
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/api_gateway_db"
+```
+
+---
+
+## 2. Install Dependencies
+
+```bash
+cd services/gateway
+npm install
+```
+
+---
+
+## 3. Run Prisma Migration
+
+```bash
+npx prisma migrate dev --name init
+```
+
+This command will:
+
+- Create database tables
+- Apply migrations
+- Generate Prisma Client
+
+---
+
+## 4. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+---
+
+## 5. Open Prisma Studio (Optional)
+
+```bash
+npx prisma studio
+```
+
+Prisma Studio provides a GUI to view and manage database records.
+
+---
+
 # Docker Setup (Recommended)
 
 ## Start Containers
@@ -87,6 +148,30 @@ docker-compose -f infra/docker-compose.yml up --build
 
 ```bash
 docker-compose -f infra/docker-compose.yml up -d --build
+```
+
+---
+
+## 2. Run Prisma Migration Inside Container
+
+```bash
+docker exec -it gateway_backend npx prisma migrate dev --name init
+```
+
+---
+
+## 3. Generate Prisma Client
+
+```bash
+docker exec -it gateway_backend npx prisma generate
+```
+
+---
+
+## 4. Open Prisma Studio
+
+```bash
+docker exec -it gateway_backend npx prisma studio
 ```
 
 ---
