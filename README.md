@@ -225,6 +225,14 @@ The Next.js Admin Dashboard provides:
 
 ---
 
+# Testing Methods
+
+You can test your api via postman or REST client by IDE extension.
+
+client.rest file conntains some testing endpoints but require the REST client extenstion to be installed in your respective IDE.
+
+---
+
 # Contributing
 
 Contributions are welcome!
